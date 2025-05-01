@@ -1,24 +1,25 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import plotly.graph_objects as go
+import json
 
 app = Flask(__name__)
 
-# Default data (will be overwritten by Tally)
+# Chart data and subscriber list
 chart_data = {
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "revenues": [0] * 12  # Placeholder (12 zeros)
+    "revenues": [0] * 12
 }
+subscribers = []
 
 def calculate_revenues(start_revenue, growth_rate):
-    """Calculate monthly revenues based on growth rate"""
     revenues = [start_revenue]
-    for _ in range(11):  # Next 11 months
+    for _ in range(11):
         revenues.append(revenues[-1] * (1 + growth_rate / 100))
     return revenues
 
-@app.route("/")
-def chart():
+def notify_subscribers():
+    """Send updated chart data to all connected clients"""
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=chart_data["months"],
@@ -26,22 +27,47 @@ def chart():
         mode="lines+markers",
         line=dict(color="blue")
     ))
-    fig.update_layout(
-        title="Monthly Revenue Projection",
-        xaxis_title="Month",
-        yaxis_title="Revenue ($)"
-    )
-    return fig.to_html()
+    fig.update_layout(title="Live Revenue Projection")
+    
+    for subscriber in subscribers:
+        subscriber(fig.to_json())
+
+@app.route("/")
+def chart():
+    """Serves the chart page with SSE listener"""
+    return f"""
+    <html>
+    <body>
+        <div id="chart"></div>
+        <script>
+            const eventSource = new EventSource("/stream");
+            eventSource.onmessage = (e) => {{
+                const data = JSON.parse(e.data);
+                Plotly.react("chart", data.data, data.layout);
+            }};
+        </script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </body>
+    </html>
+    """
+
+@app.route("/stream")
+def stream():
+    """SSE endpoint for real-time updates"""
+    def event_stream():
+        while True:
+            yield f"data: {json.dumps(chart_data)}\n\n"
+    return Response(event_stream(), mimetype="text/event-stream")
 
 @app.route("/update", methods=["POST"])
 def update():
     data = request.json
-    # Updated to match Tally's EXACT field names (capitalized + space)
-    jan_revenue = float(data["Revenue"])  # From Tally (capital "R")
-    growth_rate = float(data["Growth Rate"])  # From Tally (capital "G" and space)
+    chart_data["revenues"] = calculate_revenues(
+        float(data["Revenue"]), 
+        float(data["Growth Rate"])
     
-    # Calculate all months' revenues
-    chart_data["revenues"] = calculate_revenues(jan_revenue, growth_rate)
+    # Notify all connected clients
+    notify_subscribers()
     return jsonify({"status": "Updated!"})
 
 if __name__ == "__main__":
