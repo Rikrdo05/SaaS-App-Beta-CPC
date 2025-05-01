@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response, redirect
+from flask import Flask, request, jsonify, Response
 import plotly.graph_objects as go
 import json
 from threading import Lock
@@ -7,48 +7,30 @@ import time
 app = Flask(__name__)
 data_lock = Lock()
 
-# Chart data storage
+# Initialize with empty data
 chart_data = {
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "revenues": None  # Initialize as empty
+    "revenues": None
 }
 
-# --- Form Submission Handler ---
-@app.route('/submit', methods=['GET', 'POST'])
-def handle_form():
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    # Handle form submission
     if request.method == 'POST':
         try:
             revenue = float(request.form.get('revenue'))
             growth_rate = float(request.form.get('growth_rate')) / 100  # Convert % to decimal
             
             with data_lock:
-                # Calculate compounded revenues
                 chart_data["revenues"] = [
                     revenue * (1 + growth_rate)**i 
                     for i in range(12)
                 ]
-            
-            return redirect('/')  # Redirect to the chart after submission
-        
         except Exception as e:
             return f"Error: {str(e)}", 400
-    
-    # Show form if GET request
-    return '''
-    <form method="POST">
-        <h2>Enter Projection Data</h2>
-        Revenue ($): 
-        <input type="number" name="revenue" step="0.01" required><br><br>
-        Monthly Growth Rate (%): 
-        <input type="number" name="growth_rate" step="0.01" required><br><br>
-        <button type="submit">Update Chart</button>
-    </form>
-    '''
 
-# --- Chart Display (with SSE for real-time updates) ---
-@app.route('/')
-def show_chart():
+    # Serve the combined interface
     return '''
     <!DOCTYPE html>
     <html>
@@ -56,28 +38,46 @@ def show_chart():
         <title>Revenue Projection</title>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            #chart { width: 100%; height: 70vh; }
-            a { color: #007BFF; text-decoration: none; }
+            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+            #form-container { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+            #chart { width: 100%; height: 500px; margin-top: 20px; }
+            input, button { padding: 8px; margin: 5px 0; }
+            button { background: #007BFF; color: white; border: none; cursor: pointer; }
         </style>
     </head>
     <body>
-        <h1>Revenue Projection</h1>
-        <a href="/submit">Edit Values</a>
+        <h1>Revenue Projection Tool</h1>
+        
+        <div id="form-container">
+            <form method="POST">
+                <h3>Enter Projection Data</h3>
+                <div>
+                    <label>Starting Revenue ($):</label>
+                    <input type="number" name="revenue" step="0.01" required>
+                </div>
+                <div>
+                    <label>Monthly Growth Rate (%):</label>
+                    <input type="number" name="growth_rate" step="0.01" required>
+                </div>
+                <button type="submit">Update Projection</button>
+            </form>
+        </div>
+
         <div id="chart"></div>
         
         <script>
             // Initialize empty chart
             const layout = {
-                title: 'Monthly Revenue',
+                title: 'Monthly Revenue Projection',
                 xaxis: { title: 'Month' },
                 yaxis: { title: 'Revenue ($)' }
             };
-            Plotly.newPlot('chart', [{
+            let chart = Plotly.newPlot('chart', [{
                 x: [],
                 y: [],
                 type: 'scatter',
-                mode: 'lines+markers'
+                mode: 'lines+markers',
+                line: { color: '#007BFF' }
             }], layout);
 
             // Real-time updates via SSE
@@ -96,7 +96,6 @@ def show_chart():
     </html>
     '''
 
-# --- SSE Endpoint (unchanged) ---
 @app.route('/stream')
 def stream():
     def generate():
