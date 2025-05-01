@@ -43,5 +43,6 @@ def update():
     chart_data["revenues"] = calculate_revenues(jan_revenue, growth_rate)
     return jsonify({"status": "Updated!"})
 
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
