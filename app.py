@@ -88,20 +88,23 @@ def stream():
 
 @app.route('/update', methods=['POST'])
 def update():
-    """Handle Tally form submissions"""
     try:
         data = request.json
+        starting_revenue = float(data["Revenue"])
+        monthly_growth_rate = float(data["Growth Rate"]) / 100  # Convert 5% → 0.05
+        
         with data_lock:
-            # Calculate all months' revenues
             chart_data["revenues"] = [
-                float(data["Revenue"]) * (1 + float(data["Growth Rate"])/100)**i 
+                starting_revenue * (1 + monthly_growth_rate)**i 
                 for i in range(12)
             ]
-        
-        return jsonify({"status": "Updated successfully"})
-    
+            # Alternative for annualized rates:
+            # monthly_rate = (1 + annual_rate)**(1/12) - 1
+            # chart_data["revenues"] = [starting_revenue * (1 + monthly_rate)**i ...]
+            
+        return jsonify({"status": "Updated"})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
-
+        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
