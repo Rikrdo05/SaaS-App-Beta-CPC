@@ -91,7 +91,7 @@ def update():
     try:
         data = request.json
         starting_revenue = float(data["Revenue"])
-        monthly_growth_rate = float(data["Growth Rate"]) / 100  # Convert 5% → 0.05
+        monthly_growth_rate = float(data["Growth Rate"])  
         
         with data_lock:
             chart_data["revenues"] = [
