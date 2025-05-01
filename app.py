@@ -7,11 +7,11 @@ import time
 app = Flask(__name__)
 data_lock = Lock()
 
-# Default chart data
+# Start with empty data
 chart_data = {
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "revenues": [1000] * 12  # Default starting value
+    "revenues": None  # Will be set by first Tally submission
 }
 
 @app.route('/')
@@ -26,19 +26,20 @@ def home():
         <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             #chart { width: 100%; height: 80vh; }
+            #status { color: #666; margin-top: 10px; }
         </style>
     </head>
     <body>
         <h1>Revenue Projection</h1>
         <div id="chart"></div>
+        <div id="status">Waiting for first data submission...</div>
         
         <script>
-            // Initialize chart
+            // Initialize empty chart
             const layout = {
-                title: 'Monthly Revenue (Live Updates)',
+                title: 'Monthly Revenue Projection',
                 xaxis: { title: 'Month' },
-                yaxis: { title: 'Revenue ($)' },
-                showlegend: false
+                yaxis: { title: 'Revenue ($)' }
             };
             
             let chart = Plotly.newPlot('chart', [{
@@ -54,13 +55,16 @@ def home():
             
             eventSource.onmessage = function(event) {
                 const data = JSON.parse(event.data);
+                const statusEl = document.getElementById('status');
                 
-                Plotly.react('chart', [{
-                    x: data.months,
-                    y: data.revenues
-                }], layout);
-                
-                console.log('Chart updated at:', new Date());
+                if (data.revenues) {
+                    Plotly.react('chart', [{
+                        x: data.months,
+                        y: data.revenues
+                    }], layout);
+                    statusEl.textContent = `Last updated: ${new Date().toLocaleString()}`;
+                    statusEl.style.color = 'green';
+                }
             };
         </script>
     </body>
@@ -69,7 +73,7 @@ def home():
 
 @app.route('/stream')
 def stream():
-    """Server-Sent Events endpoint for real-time updates"""
+    """Server-Sent Events endpoint"""
     def generate():
         while True:
             with data_lock:
@@ -78,13 +82,13 @@ def stream():
                     "revenues": chart_data["revenues"]
                 })
             yield f"data: {data}\n\n"
-            time.sleep(1)  # Prevent excessive updates
+            time.sleep(0.5)  # Prevent excessive updates
     
     return Response(generate(), mimetype='text/event-stream')
 
 @app.route('/update', methods=['POST'])
 def update():
-    """Endpoint for Tally form submissions"""
+    """Handle Tally form submissions"""
     try:
         data = request.json
         with data_lock:
