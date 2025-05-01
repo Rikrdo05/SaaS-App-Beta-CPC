@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, redirect
 import plotly.graph_objects as go
 import json
 from threading import Lock
@@ -7,73 +7,98 @@ import time
 app = Flask(__name__)
 data_lock = Lock()
 
-# Start with empty data
+# Chart data storage
 chart_data = {
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "revenues": None  # Will be set by first Tally submission
+    "revenues": None  # Initialize as empty
 }
 
+# --- Form Submission Handler ---
+@app.route('/submit', methods=['GET', 'POST'])
+def handle_form():
+    if request.method == 'POST':
+        try:
+            revenue = float(request.form.get('revenue'))
+            growth_rate = float(request.form.get('growth_rate')) / 100  # Convert % to decimal
+            
+            with data_lock:
+                # Calculate compounded revenues
+                chart_data["revenues"] = [
+                    revenue * (1 + growth_rate)**i 
+                    for i in range(12)
+                ]
+            
+            return redirect('/')  # Redirect to the chart after submission
+        
+        except Exception as e:
+            return f"Error: {str(e)}", 400
+    
+    # Show form if GET request
+    return '''
+    <form method="POST">
+        <h2>Enter Projection Data</h2>
+        Revenue ($): 
+        <input type="number" name="revenue" step="0.01" required><br><br>
+        Monthly Growth Rate (%): 
+        <input type="number" name="growth_rate" step="0.01" required><br><br>
+        <button type="submit">Update Chart</button>
+    </form>
+    '''
+
+# --- Chart Display (with SSE for real-time updates) ---
 @app.route('/')
-def home():
-    """Serve the chart page with auto-updating JavaScript"""
-    return """
+def show_chart():
+    return '''
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Real-Time Revenue Chart</title>
+        <title>Revenue Projection</title>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
-            #chart { width: 100%; height: 80vh; }
-            #status { color: #666; margin-top: 10px; }
+            #chart { width: 100%; height: 70vh; }
+            a { color: #007BFF; text-decoration: none; }
         </style>
     </head>
     <body>
         <h1>Revenue Projection</h1>
+        <a href="/submit">Edit Values</a>
         <div id="chart"></div>
-        <div id="status">Waiting for first data submission...</div>
         
         <script>
             // Initialize empty chart
             const layout = {
-                title: 'Monthly Revenue Projection',
+                title: 'Monthly Revenue',
                 xaxis: { title: 'Month' },
                 yaxis: { title: 'Revenue ($)' }
             };
-            
-            let chart = Plotly.newPlot('chart', [{
+            Plotly.newPlot('chart', [{
                 x: [],
                 y: [],
                 type: 'scatter',
-                mode: 'lines+markers',
-                line: { color: '#007BFF' }
+                mode: 'lines+markers'
             }], layout);
 
-            // Connect to Server-Sent Events
+            // Real-time updates via SSE
             const eventSource = new EventSource('/stream');
-            
-            eventSource.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                const statusEl = document.getElementById('status');
-                
+            eventSource.onmessage = (e) => {
+                const data = JSON.parse(e.data);
                 if (data.revenues) {
                     Plotly.react('chart', [{
                         x: data.months,
                         y: data.revenues
                     }], layout);
-                    statusEl.textContent = `Last updated: ${new Date().toLocaleString()}`;
-                    statusEl.style.color = 'green';
                 }
             };
         </script>
     </body>
     </html>
-    """
+    '''
 
+# --- SSE Endpoint (unchanged) ---
 @app.route('/stream')
 def stream():
-    """Server-Sent Events endpoint"""
     def generate():
         while True:
             with data_lock:
@@ -82,29 +107,8 @@ def stream():
                     "revenues": chart_data["revenues"]
                 })
             yield f"data: {data}\n\n"
-            time.sleep(0.1)  # Prevent excessive updates
-    
+            time.sleep(0.1)
     return Response(generate(), mimetype='text/event-stream')
 
-@app.route('/update', methods=['POST'])
-def update():
-    try:
-        data = request.json
-        starting_revenue = float(data["Revenue"])
-        monthly_growth_rate = float(data["Growth Rate"])  
-        
-        with data_lock:
-            chart_data["revenues"] = [
-                starting_revenue * (1 + monthly_growth_rate)**i 
-                for i in range(12)
-            ]
-            # Alternative for annualized rates:
-            # monthly_rate = (1 + annual_rate)**(1/12) - 1
-            # chart_data["revenues"] = [starting_revenue * (1 + monthly_rate)**i ...]
-            
-        return jsonify({"status": "Updated"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
-        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
