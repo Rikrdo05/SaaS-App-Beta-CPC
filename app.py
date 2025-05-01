@@ -1,90 +1,103 @@
 from flask import Flask, request, jsonify, Response
 import plotly.graph_objects as go
 import json
-from threading import Lock, Condition
+from threading import Lock
 import time
 
 app = Flask(__name__)
 data_lock = Lock()
-update_condition = Condition()
-clients = []
 
-# Chart data
+# Default chart data
 chart_data = {
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "revenues": [0] * 12
+    "revenues": [1000] * 12  # Default starting value
 }
 
-def event_stream(client_id):
-    while True:
-        with update_condition:
-            update_condition.wait()  # Wait for updates
-            with data_lock:
-                data = json.dumps({
-                    "months": chart_data["months"],
-                    "revenues": chart_data["revenues"]
-                })
-        yield f"data: {data}\n\n"
-
-@app.route("/")
+@app.route('/')
 def home():
+    """Serve the chart page with auto-updating JavaScript"""
     return """
     <!DOCTYPE html>
     <html>
     <head>
         <title>Real-Time Revenue Chart</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            #chart { width: 100%; height: 80vh; }
+        </style>
     </head>
     <body>
-        <div id="chart" style="width:900px; height:500px;"></div>
+        <h1>Revenue Projection</h1>
+        <div id="chart"></div>
+        
         <script>
-            const chartDiv = document.getElementById('chart');
-            // Initial plot
-            Plotly.newPlot(chartDiv, [{
+            // Initialize chart
+            const layout = {
+                title: 'Monthly Revenue (Live Updates)',
+                xaxis: { title: 'Month' },
+                yaxis: { title: 'Revenue ($)' },
+                showlegend: false
+            };
+            
+            let chart = Plotly.newPlot('chart', [{
                 x: [],
                 y: [],
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: {color: '#007BFF'}
-            }], {
-                title: 'Real-Time Revenue Projection',
-                xaxis: {title: 'Month'},
-                yaxis: {title: 'Revenue ($)'}
-            });
-            
-            // SSE connection
+                line: { color: '#007BFF' }
+            }], layout);
+
+            // Connect to Server-Sent Events
             const eventSource = new EventSource('/stream');
-            eventSource.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                Plotly.react(chartDiv, [{
+            
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                Plotly.react('chart', [{
                     x: data.months,
                     y: data.revenues
-                }], {
-                    title: `Updated: ${new Date().toLocaleTimeString()}`
-                });
+                }], layout);
+                
+                console.log('Chart updated at:', new Date());
             };
         </script>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     </body>
     </html>
     """
 
-@app.route("/stream")
+@app.route('/stream')
 def stream():
-    client_id = time.time()
-    return Response(event_stream(client_id), mimetype="text/event-stream")
+    """Server-Sent Events endpoint for real-time updates"""
+    def generate():
+        while True:
+            with data_lock:
+                data = json.dumps({
+                    "months": chart_data["months"],
+                    "revenues": chart_data["revenues"]
+                })
+            yield f"data: {data}\n\n"
+            time.sleep(1)  # Prevent excessive updates
+    
+    return Response(generate(), mimetype='text/event-stream')
 
-@app.route("/update", methods=["POST"])
+@app.route('/update', methods=['POST'])
 def update():
-    data = request.json
-    with data_lock:
-        chart_data["revenues"] = [
-            float(data["Revenue"]) * (1 + float(data["Growth Rate"])/100)**i 
-            for i in range(12)
-        ]
-    with update_condition:
-        update_condition.notify_all()  # Notify all clients
-    return jsonify({"status": "Updated!"})
+    """Endpoint for Tally form submissions"""
+    try:
+        data = request.json
+        with data_lock:
+            # Calculate all months' revenues
+            chart_data["revenues"] = [
+                float(data["Revenue"]) * (1 + float(data["Growth Rate"])/100)**i 
+                for i in range(12)
+            ]
+        
+        return jsonify({"status": "Updated successfully"})
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
