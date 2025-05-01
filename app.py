@@ -82,7 +82,7 @@ def stream():
                     "revenues": chart_data["revenues"]
                 })
             yield f"data: {data}\n\n"
-            time.sleep(0.5)  # Prevent excessive updates
+            time.sleep(0.1)  # Prevent excessive updates
     
     return Response(generate(), mimetype='text/event-stream')
 
