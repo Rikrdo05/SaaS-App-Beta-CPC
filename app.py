@@ -36,13 +36,13 @@ def chart():
 @app.route("/update", methods=["POST"])
 def update():
     data = request.json
-    jan_revenue = float(data["revenue"])  # From Tally
-    growth_rate = float(data["growth_rate"])  # From Tally
+    # Updated to match Tally's EXACT field names (capitalized + space)
+    jan_revenue = float(data["Revenue"])  # From Tally (capital "R")
+    growth_rate = float(data["Growth Rate"])  # From Tally (capital "G" and space)
     
     # Calculate all months' revenues
     chart_data["revenues"] = calculate_revenues(jan_revenue, growth_rate)
     return jsonify({"status": "Updated!"})
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
