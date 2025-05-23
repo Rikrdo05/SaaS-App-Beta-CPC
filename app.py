@@ -37,12 +37,13 @@ with st.form("single_page_form", clear_on_submit=False):
         st.session_state.form_data['kick_off_date'] = kick_off_date
 
         st.session_state.form_data['subscription_price'] = st.number_input("Subscription Price ($)",min_value=0.0,value=25.5,step=0.5, format="%.2f")
-        st.session_state.form_data['sem_cost_metric'] = st.selectbox("SEM Cost Metric", ["CPC", "CPA"], index=1)
+        st.session_state.form_data['free_trial_days'] = st.number_input("Free Trial (Days)", min_value=0, max_value=28,value=7,step=1)
+
     
     with col2:
-        st.session_state.form_data['free_trial_days'] = st.slider("Free Trial (Days)", 0, 28, 7)
-        st.session_state.form_data['trial_to_paid'] = st.slider("Trial Conversion %", 0, 100, 25) / 100
-        st.session_state.form_data['churn_rate'] = st.slider("Monthly Churn %", 0, 100, 10) / 100
+        
+        st.session_state.form_data['trial_to_paid'] = st.number_input("Trial To Paid Rate %", min_value=0, max_value=100,value=25,step=5) / 100
+        st.session_state.form_data['churn_rate'] = st.number_input("Monthly Churn %", min_value=0, max_value=100,value=25,step=5) / 100
     
     # Traffic Inputs
     st.subheader("Traffic Parameters")
@@ -207,9 +208,13 @@ if st.session_state.calculate:
     monthly_web_hosting_cost = form_data['monthly_web_hosting_cost']
     monthly_techsoft_cost = form_data['monthly_techsoft_cost']
     monthly_labor_cost = form_data['monthly_labor_cost']
-
     renewal_rate = 1 - churn_rate
     LTV = (subscription_price * trial_to_paid) / (1 - renewal_rate)
+    sem_roi=LTV-sem_cpa
+    sem_roi_percent=sem_roi/sem_cpa
+    affiliate_marketing_roi=LTV-affiliate_cpa
+    affiliate_marketing_roi_percent=affiliate_marketing_roi/affiliate_cpa
+    
 
     # First, let's create a function to determine the growth rate based on the month index
     def get_sem_growth_rate(month_idx):
@@ -376,15 +381,35 @@ if st.session_state.calculate:
     start_month = free_trial_days / 30
     months = [start_month + i for i in range(len(cumulative_ltv))]
     cumulative_ltv["Months"] = months
-
-    def lookup_payback_period(cac_value):
-        if LTV < cac_value:
-            return "No Pay Back"
-        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= cac_value].head(1)
+    
+    if LTV < sem_cpa: 
+        time_to_recover_sem_cac = "No Pay Back" 
+    else: 
+        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= sem_cpa].head(1)
         if not match_row.empty:
-            return match_row["Months"].values[0]
+            time_to_recover_sem_cac = match_row["Months"].values[0]
         else:
-            return "No Pay Back"
+            time_to_recover_sem_cac = "No Pay Back"
+        
+    if LTV < affiliate_cpa:
+        time_to_recover_sem_affiliate_cpa = "No Pay Back"
+    else:
+        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= affiliate_cpa].head(1)
+        if not match_row.empty:
+            time_to_recover_sem_affiliate_cpa = match_row["Months"].values[0]
+        else:
+            time_to_recover_sem_affiliate_cpa = "No Pay Back"
+    
+def lookup_payback_period(cac_value):
+    if LTV < cac_value:
+        return "No Pay Back"
+    match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= cac_value].head(1)
+    if not match_row.empty:
+        return match_row["Months"].values[0]
+    else:
+        return "No Pay Back"
+
+
 
     df["time_to_recover_Internet_marketing_cac"] = df["Internet Marketing CAC Weighted average"].apply(lookup_payback_period)
 
@@ -417,13 +442,13 @@ if st.session_state.calculate:
     st.subheader("Financial Performance by Year")
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Revenue"],
-                             mode='lines+markers', name='Revenue'))
+                             mode='lines+markers', name='Revenue',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Income"],
-                             mode='lines+markers', name='Income'))
+                             mode='lines+markers', name='Income',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Gross Income"],
-                             mode='lines+markers', name='Gross Income'))
+                             mode='lines+markers', name='Gross Income',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Earnings Before Taxes"],
-                             mode='lines+markers', name='Earnings Before Taxes'))
+                             mode='lines+markers', name='Earnings Before Taxes',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Amount ($)",
@@ -436,14 +461,20 @@ if st.session_state.calculate:
 
     # Cashflow accumulation chart
     st.subheader("Cash Flow Accumulation by Year")
-    df_cashflow = df_financials.groupby("Year", as_index=False)["Cash Flow Accumulation"].sum()
+    df_cashflow = df_financials.groupby("Year", as_index=False)["Earnings Before Taxes"].sum()
+    df_cashflow["Cash Flow Accumulation"] = df_cashflow["Earnings Before Taxes"].cumsum()
     fig = px.bar(
         df_cashflow,
         x="Year",
         y="Cash Flow Accumulation",
-        labels={"Cash Flow Accumulation": "Cash Flow Accumulation"},
-        text_auto=True,
+        labels={"Cash Flow Accumulation": "Cash Flow Accumulation ($)"},
+        text_auto='.2f',
         color_discrete_sequence=["skyblue"]
+    )
+    fig.update_traces(
+        hovertemplate='$%{y:,.2f}<extra></extra>',
+        texttemplate='$%{y:,.2f}',
+        textposition='outside'
     )
     fig.update_layout(
         xaxis_title="Year",
@@ -467,18 +498,22 @@ if st.session_state.calculate:
         y=df_rev_split["New Monthly Recurring Revenue MRR"],
         mode='lines',
         name='New MRR',
-        stackgroup='one'
+        stackgroup='one',
+        hovertemplate='New MRR: $%{y:,.2f}<extra></extra>'
     ))
     fig.add_trace(go.Scatter(
         x=df_rev_split["Month"],
         y=df_rev_split["Renewal Recurring Revenue MRR"],
         mode='lines',
         name='Renewal MRR',
-        stackgroup='one'
+        stackgroup='one',
+        hovertemplate='New MRR: $%{y:,.2f}<extra></extra>'
     ))
     fig.update_layout(
         xaxis_title="Month",
         yaxis_title="MRR",
-        xaxis=dict(type='category')
+        xaxis=dict(type='category'),
+        yaxis=dict(tickformat="$,.2f")
     )
     st.plotly_chart(fig, use_container_width=True)
+    
