@@ -35,15 +35,14 @@ with st.form("single_page_form", clear_on_submit=False):
         
         # Store in session state
         st.session_state.form_data['kick_off_date'] = kick_off_date
-
-        st.session_state.form_data['subscription_price'] = st.number_input("Subscription Price ($)",min_value=0.0,value=25.5,step=0.5, format="%.2f")
-        st.session_state.form_data['free_trial_days'] = st.number_input("Free Trial (Days)", min_value=0, max_value=28,value=7,step=1)
+        st.session_state.form_data['free_trial_days'] = st.number_input("Subscription Free Trial (Days)", min_value=0, max_value=28,value=7,step=1)
+        st.session_state.form_data['churn_rate'] = st.number_input("Monthly Churn Rate%", min_value=0, max_value=100,value=25,step=5) / 100
 
     
     with col2:
+        st.session_state.form_data['subscription_price'] = st.number_input("Monthly Subscription Price ($)",min_value=0.0,value=25.5,step=0.5, format="%.2f")
+        st.session_state.form_data['trial_to_paid'] = st.number_input("Monthly Trial To Paid Rate %", min_value=0, max_value=100,value=25,step=5) / 100
         
-        st.session_state.form_data['trial_to_paid'] = st.number_input("Trial To Paid Rate %", min_value=0, max_value=100,value=25,step=5) / 100
-        st.session_state.form_data['churn_rate'] = st.number_input("Monthly Churn %", min_value=0, max_value=100,value=25,step=5) / 100
     
     # Traffic Inputs
     st.subheader("Traffic Parameters")
@@ -51,11 +50,11 @@ with st.form("single_page_form", clear_on_submit=False):
     
     with traffic_col1:
         st.session_state.form_data['sem_traffic_m1'] = st.number_input(
-            "SEM Traffic - First Month", min_value=0, 
+            "SEM Traffic (Paid Traffic) - First Month", min_value=0, 
             value=100000, step=1000, format="%d")
     with traffic_col2:
         st.session_state.form_data['seo_traffic_m1'] = st.number_input(
-            "SEO Traffic - First Month", min_value=0, 
+            "SEO Traffic (Organic Traffic) - First Month", min_value=0, 
             value=100000, step=1000, format="%d")
     
     # Growth Rates Section
@@ -90,10 +89,10 @@ with st.form("single_page_form", clear_on_submit=False):
         st.session_state.form_data['seo_traffic_gr_y5'] = st.number_input("Year 5 (%)", 0.0, 100.0, 2.0, 0.5, key="seo_y5") / 100
     
     # Conversion Rates Section
-    st.subheader("Conversion Rate Assumptions")
+    st.subheader("Conversion Rate Assumptions (Traffic-to-Trial Rate)")
     
     # SEM Conversion Rates
-    st.markdown("**SEM Conversion Rates**")
+    st.markdown("**SEM (Paid Traffic) Conversion Rates**")
     sem_cr_cols = st.columns(5)
     with sem_cr_cols[0]:
         st.session_state.form_data['sem_cr_y1'] = st.number_input("Year 1", 0.0, 100.0, 4.0, 0.5, key="sem_cr_y1") / 100
@@ -107,7 +106,7 @@ with st.form("single_page_form", clear_on_submit=False):
         st.session_state.form_data['sem_cr_y5'] = st.number_input("Year 5", 0.0, 100.0, 6.0, 0.5, key="sem_cr_y5") / 100
     
     # SEO Conversion Rates
-    st.markdown("**SEO Conversion Rates**")
+    st.markdown("**SEO (Organic Traffic) Conversion Rates**")
     seo_cr_cols = st.columns(5)
     with seo_cr_cols[0]:
         st.session_state.form_data['seo_cr_y1'] = st.number_input("Year 1", 0.0, 100.0, 4.0, 0.5, key="seo_cr_y1") / 100
@@ -129,7 +128,7 @@ with st.form("single_page_form", clear_on_submit=False):
         min_value=0, value=1000, step=1000, format="%d")
 
     # Affiliate Growth Rates
-    st.markdown("**Affiliate Subscriptions Growth**")
+    st.markdown("**Monthly Affiliate Marketing Subscriptions Growth Rate**")
     aff_cols = st.columns(5)
     with aff_cols[0]:
         st.session_state.form_data['affiliate_subs_gr_y1'] = st.number_input("Year 1", 0.0, 100.0, 2.0, 0.5, key="aff_y1") / 100
@@ -147,13 +146,13 @@ with st.form("single_page_form", clear_on_submit=False):
     cost_col1, cost_col2 = st.columns(2)
     
     with cost_col1:
-        st.session_state.form_data['sem_cpa'] = st.number_input("SEM CPA ($)", min_value=0.0, value=20.0, step=0.5, format="%.2f")
-        st.session_state.form_data['affiliate_cpa'] = st.number_input("Affiliate Marketing Pay-per-Subscription ($)", min_value=0.0, value=11.0, step=0.5, format="%.2f")
-        st.session_state.form_data['ccp_rate'] = st.number_input("Credit Card Processing Cost (%)", min_value=0.0, value=10.0, step=0.5, format="%.2f") / 100
-        st.session_state.form_data['refund_rate'] = st.number_input("Refund Rate (%)", min_value=0.0, value=5.0, step=0.5, format="%.2f") / 100
+        st.session_state.form_data['sem_cpa'] = st.number_input("SEM Cost Per User Acquisition - CPA ($)", min_value=0.0, value=20.0, step=0.5, format="%.2f")
+        st.session_state.form_data['affiliate_cpa'] = st.number_input("Affiliate Marketing CPA ($)", min_value=0.0, value=11.0, step=0.5, format="%.2f")
+        st.session_state.form_data['ccp_rate'] = st.number_input("Credit Card Processing Cost (% of Revenue)", min_value=0.0, value=10.0, step=0.5, format="%.2f") / 100
+        st.session_state.form_data['refund_rate'] = st.number_input("Refund Rate (% of Revenue)", min_value=0.0, value=5.0, step=0.5, format="%.2f") / 100
         
     with cost_col2:
-        st.session_state.form_data['chb_rate'] = st.number_input("Chargeback Rate (%)", min_value=0.0, value=0.5, step=0.5, format="%.2f") / 100
+        st.session_state.form_data['chb_rate'] = st.number_input("Chargeback Rate (% of Revenue)", min_value=0.0, value=0.5, step=0.5, format="%.2f") / 100
         st.session_state.form_data['monthly_web_hosting_cost'] = st.number_input("Monthly Web Hosting Cost ($)", min_value=0, value=300, step=50)
         st.session_state.form_data['monthly_techsoft_cost'] = st.number_input("Monthly Technology & Software Cost ($)", min_value=0, value=300, step=50)
         st.session_state.form_data['monthly_labor_cost'] = st.number_input("Monthly Labor Cost ($)", min_value=0, value=10000, step=1000)
@@ -383,7 +382,7 @@ if st.session_state.calculate:
     cumulative_ltv["Months"] = months
     
     if LTV < sem_cpa: 
-        time_to_recover_sem_cac = "No Pay Back" 
+        time_to_recover_sem_cac = 100000
     else: 
         match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= sem_cpa].head(1)
         if not match_row.empty:
@@ -392,22 +391,22 @@ if st.session_state.calculate:
             time_to_recover_sem_cac = "No Pay Back"
         
     if LTV < affiliate_cpa:
-        time_to_recover_sem_affiliate_cpa = "No Pay Back"
+        time_to_recover_affiliate_cac = 100000
     else:
         match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= affiliate_cpa].head(1)
         if not match_row.empty:
-            time_to_recover_sem_affiliate_cpa = match_row["Months"].values[0]
+            time_to_recover_affiliate_cac = match_row["Months"].values[0]
         else:
-            time_to_recover_sem_affiliate_cpa = "No Pay Back"
+            time_to_recover_affiliate_cac = "No Pay Back"
     
-def lookup_payback_period(cac_value):
-    if LTV < cac_value:
-        return "No Pay Back"
-    match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= cac_value].head(1)
-    if not match_row.empty:
-        return match_row["Months"].values[0]
-    else:
-        return "No Pay Back"
+    def lookup_payback_period(cac_value):
+        if LTV < cac_value:
+            return "No Pay Back"
+        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= cac_value].head(1)
+        if not match_row.empty:
+            return match_row["Months"].values[0]
+        else:
+            return "No Pay Back"
 
 
 
@@ -437,6 +436,38 @@ def lookup_payback_period(cac_value):
 
     # Show charts
     st.title("📈 Financial Projections Results")
+
+    # Revenue split chart
+    st.subheader("Monthly Recurring Revenue MRR Split")
+    df_rev_split = df[[
+        'Month',
+        'New Monthly Recurring Revenue MRR',
+        'Renewal Recurring Revenue MRR' 
+    ]]
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=df_rev_split["Month"],
+        y=df_rev_split["New Monthly Recurring Revenue MRR"],
+        mode='lines',
+        name='Trial To Paid<br>(New Users)',
+        stackgroup='one',
+        hovertemplate='New MRR: $%{y:,.2f}<extra></extra>'
+    ))
+    fig.add_trace(go.Scatter(
+        x=df_rev_split["Month"],
+        y=df_rev_split["Renewal Recurring Revenue MRR"],
+        mode='lines',
+        name='Recurring<br>Renewals',
+        stackgroup='one',
+        hovertemplate='New MRR: $%{y:,.2f}<extra></extra>'
+    ))
+    fig.update_layout(
+        xaxis_title="Month",
+        yaxis_title="MRR",
+        xaxis=dict(type='category'),
+        yaxis=dict(tickformat="$,.2f")
+    )
+    st.plotly_chart(fig, use_container_width=True)
     
     # Financial performance by year chart
     st.subheader("Financial Performance by Year")
@@ -446,9 +477,9 @@ def lookup_payback_period(cac_value):
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Income"],
                              mode='lines+markers', name='Income',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Gross Income"],
-                             mode='lines+markers', name='Gross Income',hovertemplate='$%{y:,.2f}<extra></extra>'))
+                             mode='lines+markers', name='Gross<br>Income',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.add_trace(go.Scatter(x=df_financials_by_year["Year"], y=df_financials_by_year["Earnings Before Taxes"],
-                             mode='lines+markers', name='Earnings Before Taxes',hovertemplate='$%{y:,.2f}<extra></extra>'))
+                             mode='lines+markers', name='Earnings<br>EBITDA',hovertemplate='$%{y:,.2f}<extra></extra>'))
     fig.update_layout(
         xaxis_title="Year",
         yaxis_title="Amount ($)",
@@ -485,35 +516,39 @@ def lookup_payback_period(cac_value):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Revenue split chart
-    st.subheader("New vs Renewal MRR")
-    df_rev_split = df[[
-        'Month',
-        'New Monthly Recurring Revenue MRR',
-        'Renewal Recurring Revenue MRR' 
-    ]]
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=df_rev_split["Month"],
-        y=df_rev_split["New Monthly Recurring Revenue MRR"],
-        mode='lines',
-        name='New MRR',
-        stackgroup='one',
-        hovertemplate='New MRR: $%{y:,.2f}<extra></extra>'
-    ))
-    fig.add_trace(go.Scatter(
-        x=df_rev_split["Month"],
-        y=df_rev_split["Renewal Recurring Revenue MRR"],
-        mode='lines',
-        name='Renewal MRR',
-        stackgroup='one',
-        hovertemplate='New MRR: $%{y:,.2f}<extra></extra>'
-    ))
-    fig.update_layout(
-        xaxis_title="Month",
-        yaxis_title="MRR",
-        xaxis=dict(type='category'),
-        yaxis=dict(tickformat="$,.2f")
+
+
+    # Key Metrics Summary Table - ADDED AT THE END
+    st.subheader("Key Metrics Summary")
+    metrics_data = {
+        "Metric": [
+            "Average Monthly Renewal Rate (%)",
+            "User Life Time Value - LTV ($)",
+            "SEM Return of Investment - ROI ($)",
+            "SEM ROI (%)",
+            "Affiliate Marketing ROI ($)",
+            "Affiliate Marketing ROI (%)",
+            "Time to Recover SEM Customer Acquisition Cost - CAC (months)",
+            "Time to Recover Affiliate Marketing CAC (months)"
+        ],
+        "Value": [
+            f"{renewal_rate:.1%}",
+            f"${LTV:,.2f}",
+            f"${sem_roi:,.2f}",
+            f"{sem_roi_percent:.2%}",
+            f"${affiliate_marketing_roi:,.2f}",
+            f"{affiliate_marketing_roi_percent:.2%}",
+            "Immediately" if time_to_recover_sem_cac == 0.0 else "Not Profitable" if time_to_recover_sem_cac>1200 else f"{time_to_recover_sem_cac:,.2f}",
+            "Immediately" if time_to_recover_affiliate_cac == 0.0 else "Not Profitable" if time_to_recover_affiliate_cac>1200 else f"{time_to_recover_affiliate_cac:,.2f}"
+        ]
+    }
+    metrics_df = pd.DataFrame(metrics_data)
+    st.dataframe(
+        metrics_df,
+        column_config={
+            "Metric": st.column_config.TextColumn("Metric", width="medium"),
+            "Value": st.column_config.TextColumn("Value", width="small")
+        },
+        hide_index=True,
+        use_container_width=True
     )
-    st.plotly_chart(fig, use_container_width=True)
-    
