@@ -268,11 +268,7 @@ if st.session_state.calculate:
     am_ocr=form_data['am_ocr']
     renewal_rate = 1 - churn_rate
     LTV = (subscription_price * trial_to_paid) / (1 - renewal_rate)
-    sem_roi=LTV-sem_cpa 
-    if sem_cpa == 0:
-        sem_roi_percent = None 
-    else: 
-        sem_roi_percent = sem_roi / sem_cpa
+
     affiliate_marketing_roi=LTV-affiliate_cpa
     
     if affiliate_cpa == 0:
@@ -448,7 +444,12 @@ if st.session_state.calculate:
     df["sem_cpa"]=df["SEM - Paid Traffic"]*sem_cpc/df["SEM Subscriptions"]
 
     df["Internet Marketing CAC Weighted average"] = ((df["SEM Subscriptions"] * df["sem_cpa"]) + (df["AM Subscriptions"] * affiliate_cpa)) / (df["SEM Subscriptions"] + df["AM Subscriptions"])
-
+    
+    df["sem_roi"]=LTV-df["sem_cpa"] 
+    if df["sem_cpa"] == 0:
+        df["sem_roi_percent"] = None 
+    else: 
+        df["sem_roi_percent"] = df["sem_roi"] / df["sem_cpa"]
     # dataframe for cac payback period
     first_value = subscription_price * trial_to_paid
     ltv_threshold = LTV * 0.999  # 99% of LTV
