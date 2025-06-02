@@ -163,7 +163,7 @@ with st.form("single_page_form", clear_on_submit=False):
     cost_col1, cost_col2 = st.columns(2)
     
     with cost_col1:
-        st.session_state.form_data['sem_cpa'] = st.number_input("SEM Customer Acquisition Cost - CAC ($)", min_value=0.0, value=20.0, step=0.5, format="%.2f")
+        st.session_state.form_data['sem_cpc'] = st.number_input("SEM Cost Per Click - CPC ($)", min_value=0.0, value=20.0, step=0.5, format="%.2f")
         st.session_state.form_data['affiliate_cpa'] = st.number_input("Affiliate Marketing Customer Acquisition Cost - CAC ($)", min_value=0.0, value=11.0, step=0.5, format="%.2f")
         st.session_state.form_data['ccp_rate'] = st.number_input("Credit Card Processing Cost (% of Revenue)", min_value=0.0, value=10.0, step=0.5, format="%.2f") / 100
         st.session_state.form_data['refund_rate'] = st.number_input("Refund Rate (% of Revenue)", min_value=0.0, value=5.0, step=0.5, format="%.2f") / 100
@@ -251,7 +251,7 @@ if st.session_state.calculate:
     am_cr_y3 = form_data['am_cr_y3']
     am_cr_y4 = form_data['am_cr_y4']
     am_cr_y5 = form_data['am_cr_y5']
-    sem_cpa = form_data['sem_cpa']
+    sem_cpc = form_data['sem_cpc']
     affiliate_cpa = form_data['affiliate_cpa']
     ccp_rate = form_data['ccp_rate']
     refund_rate = form_data['refund_rate']
@@ -432,7 +432,8 @@ if st.session_state.calculate:
     df['Cost of Goods/Services Sold'] = df['Credit Card Processing'] + df['Web Hosting']
     df['Gross Income'] = df['Income'] - df['Cost of Goods/Services Sold']
     df['Labor Cost'] = monthly_labor_cost
-    df['SEM Marketing'] = df["SEM Subscriptions"] * sem_cpa
+    df['SEM Marketing'] = df["SEM - Paid Traffic"] * sem_cpc
+    df["am_cpa_month_cost"]=affiliate_cpa
     df['Affiliate Marketing'] = df["AM Subscriptions"] * affiliate_cpa
     df['Internet Marketing Cost'] = df['Affiliate Marketing'] + df['SEM Marketing']
     df['Technology & Software'] = monthly_techsoft_cost
@@ -444,7 +445,9 @@ if st.session_state.calculate:
         current_earnings = df.loc[i, 'Earnings Before Taxes']
         df.loc[i, 'Cash Flow Accumulation'] = prev_cf + current_earnings
 
-    df["Internet Marketing CAC Weighted average"] = ((df["SEM Subscriptions"] * sem_cpa) + (df["AM Subscriptions"] * affiliate_cpa)) / (df["SEM Subscriptions"] + df["AM Subscriptions"])
+    df["sem_cpa"]=df["SEM - Paid Traffic"]*sem_cpc/df["SEM Subscriptions"]
+
+    df["Internet Marketing CAC Weighted average"] = ((df["SEM Subscriptions"] * df["sem_cpa"]) + (df["AM Subscriptions"] * affiliate_cpa)) / (df["SEM Subscriptions"] + df["AM Subscriptions"])
 
     # dataframe for cac payback period
     first_value = subscription_price * trial_to_paid
@@ -464,25 +467,28 @@ if st.session_state.calculate:
     months = [start_month + i for i in range(len(cumulative_ltv))]
     cumulative_ltv["Months"] = months
     
-    if LTV < sem_cpa: 
-        time_to_recover_sem_cac = 100000
-    else: 
-        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= sem_cpa].head(1)
-        if not match_row.empty:
-            time_to_recover_sem_cac = match_row["Months"].values[0]
-        else:
-            time_to_recover_sem_cac = "No Pay Back"
+
         
-    if LTV < affiliate_cpa:
-        time_to_recover_affiliate_cac = 100000
-    else:
-        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= affiliate_cpa].head(1)
+
+    def lookup_payback_period_am(am_cac_value):
+        if LTV < am_cac_value:
+            return "No Pay Back"
+        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= am_cac_value].head(1)
         if not match_row.empty:
-            time_to_recover_affiliate_cac = match_row["Months"].values[0]
+            return match_row["Months"].values[0]
         else:
-            time_to_recover_affiliate_cac = "No Pay Back"
+            return "No Pay Back"
     
-    def lookup_payback_period(cac_value):
+    def lookup_payback_period_sem(sem_cac_value):
+        if LTV < sem_cac_value:
+            return "No Pay Back"
+        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= sem_cac_value].head(1)
+        if not match_row.empty:
+            return match_row["Months"].values[0]
+        else:
+            return "No Pay Back"
+    
+    def lookup_payback_period_intcac(cac_value):
         if LTV < cac_value:
             return "No Pay Back"
         match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= cac_value].head(1)
@@ -491,9 +497,10 @@ if st.session_state.calculate:
         else:
             return "No Pay Back"
 
+    df["time_to_recover_AM_cac"] = df[""am_cpa_month_cost""].apply(lookup_payback_period_sem)
+    df["time_to_recover_SEM_cac"] = df["sem_cpa"].apply(lookup_payback_period_sem)
 
-
-    df["time_to_recover_Internet_marketing_cac"] = df["Internet Marketing CAC Weighted average"].apply(lookup_payback_period)
+    df["time_to_recover_Internet_marketing_cac"] = df["Internet Marketing CAC Weighted average"].apply(lookup_payback_period_intcac)
 
     # Financials dataframe consolidation
     df_financials = df[[
@@ -733,62 +740,3 @@ if st.session_state.calculate:
 
 
 
-    # Key Metrics Summary Table - ADDED AT THE END
-    st.subheader("Key Metrics Summary")
-    metrics_data = {
-        "Metric": [
-            "Average Monthly Renewal Rate (%)",
-            "User Subscription Life Time Value - LTV ($)",
-            "SEM Paid Customer Acquisition Cost - CAC ($)",
-            "SEM Paid Customer Acquisition Cost Return of Investment - ROI ($)",
-            "SEM Paid Customer Acquisition Cost Return of Investment - ROI (%)",
-            "Affiliate Marketing Customer Acquisition Cost -CAC ($)",
-            "Affiliate Marketing Customer Acquisition Cost ROI ($)",
-            "Affiliate Marketing Customer Acquisition Cost ROI (%)",
-            "Time to Recover SEM Customer Acquisition Cost - CAC (months)",
-            "Time to Recover Affiliate Marketing Cust Acq Cost - CAC (months)"
-        ],
-        "Value": [
-            f"{renewal_rate:.1%}",
-            f"${LTV:,.2f}",
-            f"${sem_cpa:,.2f}",
-            f"${sem_roi:,.2f}" if sem_roi_percent is not None else "N/A. You input SEM CAC = 0.00",
-            f"{sem_roi_percent:.2%}" if sem_roi_percent is not None else "N/A. You input SEM CAC = 0.00",
-            f"${affiliate_cpa:,.2f}",
-            f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A. You input Affiliate Marketing CAC = 0.00",
-            f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A. You input Affiliate Marketing CAC = 0.00",
-            "N/A. You input SEM CAC = 0.00" if sem_roi_percent is None else "Immediately" if time_to_recover_sem_cac == 0.0 else "Not Profitable" if time_to_recover_sem_cac>1200 else f"{time_to_recover_sem_cac:,.2f}",
-            "N/A. You input Affiliate Marketing CAC = 0.00" if affiliate_marketing_roi_percent is None else "Immediately" if time_to_recover_affiliate_cac == 0.0 else "Not Profitable" if time_to_recover_affiliate_cac>1200 else f"{time_to_recover_affiliate_cac:,.2f}"
-        ]
-    }
-    metrics_df = pd.DataFrame(metrics_data)
-    st.dataframe(
-        metrics_df,
-        column_config={
-            "Metric": st.column_config.TextColumn("Metric", width="medium"),
-            "Value": st.column_config.TextColumn("Value", width="small")
-        },
-        hide_index=True,
-        use_container_width=True
-    )
-    
-    
-    if sem_traffic_m1 > 0 and sem_cpa == 0:
-        st.warning("⚠️ **Warning:** You input SEM traffic but also input $0 SEM CAC, SEM traffic always has SEM CAC.")
-    
-    if am_traffic_m1 > 0 and affiliate_cpa == 0:
-        st.error("⚠️ **Warning:** You input Affiliate Marketing traffic but $0 Affiliate CAC, Affiliate Marketing traffic always has Affiliate CAC.")
-  
-
-    
-    if affiliate_cpa > 0 and LTV < affiliate_cpa:
-        st.warning("⚠️ **Warning:** Your Affiliate CAC ($" + f"{affiliate_cpa:,.2f}) "  
-                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
-        # Still allow calculations, but warn the user
-
-    # Validation 3: CAC > LTV → Warning (unprofitable)
-    if sem_cpa > 0 and LTV < sem_cpa:
-        st.warning("⚠️ **Warning:** Your SEM CAC ($" + f"{sem_cpa:,.2f}) "  
-                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through SEM channel**.")
-        # Still allow calculations, but warn the user
-  
