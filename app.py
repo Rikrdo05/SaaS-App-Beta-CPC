@@ -497,7 +497,7 @@ if st.session_state.calculate:
         else:
             return "No Pay Back"
 
-    df["time_to_recover_AM_cac"] = df[""am_cpa_month_cost""].apply(lookup_payback_period_sem)
+    df["time_to_recover_AM_cac"] = df["am_cpa_month_cost"].apply(lookup_payback_period_sem)
     df["time_to_recover_SEM_cac"] = df["sem_cpa"].apply(lookup_payback_period_sem)
 
     df["time_to_recover_Internet_marketing_cac"] = df["Internet Marketing CAC Weighted average"].apply(lookup_payback_period_intcac)
