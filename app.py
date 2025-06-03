@@ -800,17 +800,11 @@ if st.session_state.calculate:
 
     metrics_df = pd.DataFrame(metrics_data)
 
-    # Reorder columns to put Metric first
-    cols = ['Metric'] + [col for col in metrics_df.columns if col != 'Metric']
-    metrics_df = metrics_df[cols]
+# Convert to HTML and render
+def convert_df_to_html(df):
+    return df.to_html(escape=False, index=False)
 
-    # Display the table with improved formatting
-    st.dataframe(
-        metrics_df,
-        column_config={
-            "Metric": st.column_config.TextColumn("Metric", width="medium"),
-            **{str(year): st.column_config.TextColumn(str(year), width="small") for year in years}
-        },
-        hide_index=True,
-        use_container_width=True
-    )
+st.markdown(
+    convert_df_to_html(metrics_df),
+    unsafe_allow_html=True
+)
