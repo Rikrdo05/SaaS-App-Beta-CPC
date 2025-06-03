@@ -808,3 +808,35 @@ if st.session_state.calculate:
         convert_df_to_html(metrics_df),
         unsafe_allow_html=True
     )
+    if sem_traffic_m1 > 0 and sem_cpc == 0:
+        st.warning("⚠️ **Warning:** You input SEM traffic but also input $0 SEM CPC, SEM traffic always has SEM Customer Acquisition Cost.")
+    
+    if am_traffic_m1 > 0 and affiliate_cpa == 0:
+        st.error("⚠️ **Warning:** You input Affiliate Marketing traffic but $0 Affiliate CAC, Affiliate Marketing traffic always has Affiliate CAC.")
+  
+
+    
+    if affiliate_cpa > 0 and LTV < affiliate_cpa:
+        st.warning("⚠️ **Warning:** Your Affiliate CAC ($" + f"{affiliate_cpa:,.2f}) "  
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
+        # Still allow calculations, but warn the user
+
+    # 1. Locate SEM CAC for the first year
+    sem_cac_row = metrics_df[metrics_df['Metric'].str.contains('SEM Paid Customer Acquisition.*Cost - CAC')]
+    if not sem_cac_row.empty:
+        first_year = metrics_df.columns[1]  # First year column
+        sem_cac_value = sem_cac_row.iloc[0][first_year]
+    
+        # 2. Extract LTV (constant across years)
+        ltv_value = metrics_df[metrics_df['Metric'] == 'User Subscription Life Time Value - LTV ($)'].iloc[0, 0]  # Assumes LTV is in the first column's value
+    
+        # 3. Convert to floats (handle currency formatting)
+        try:
+            sem_cac = float(sem_cac_value.replace('$', '').replace(',', '')) if isinstance(sem_cac_value, str) else sem_cac_value
+            ltv = float(ltv_value.replace('$', '').replace(',', '')) if isinstance(ltv_value, str) else ltv_value
+        except (ValueError, AttributeError):
+            sem_cac, ltv = 0, 0  # Fallback if conversion fails
+    
+        # 4. Compare values
+        if sem_cac > ltv:
+            print(f"⚠️ Warning: SEM CAC (${sem_cac:,.2f}) > LTV (${ltv:,.2f}) in {first_year}")
