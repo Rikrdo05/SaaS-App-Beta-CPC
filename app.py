@@ -738,5 +738,66 @@ if st.session_state.calculate:
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # Key Metrics Summary Table - Yearly View (January values)
+    st.subheader("Key Metrics Summary - January Values by Year")
 
+    # Get January data for each year
+    january_data = df[df['Month'].dt.month == 1].copy()
+
+    # Prepare metrics data
+    metrics_data = {
+        "Metric": [
+            "Average Monthly Renewal Rate (%)",
+            "User Subscription Life Time Value - LTV ($)",
+            "SEM Paid Customer Acquisition Cost - CAC ($)",
+            "SEM Paid Customer Acquisition Cost ROI ($)",
+            "SEM Paid Customer Acquisition Cost ROI (%)",
+            "Affiliate Marketing Customer Acquisition Cost - CAC ($)",
+            "Affiliate Marketing Customer Acquisition Cost ROI ($)",
+            "Affiliate Marketing Customer Acquisition Cost ROI (%)",
+            "Time to Recover SEM CAC (months)",
+            "Time to Recover Affiliate CAC (months)"
+        ]
+    }
+
+    # Add yearly columns
+    years = sorted(df['Year'].unique())
+    for year in years:
+        year_data = january_data[january_data['Year'] == year]
+        if not year_data.empty:
+            jan_row = year_data.iloc[0]  # Get January data
+        
+            metrics_data[year] = [
+                f"{renewal_rate:.1%}",  # Constant across years
+                f"${LTV:,.2f}",  # Constant across years
+                f"${jan_row['sem_cpa']:,.2f}" if not pd.isna(jan_row['sem_cpa']) else "N/A",
+                f"${jan_row['sem_roi']:,.2f}" if not pd.isna(jan_row['sem_roi']) else "N/A",
+                f"{jan_row['sem_roi_percent']:.2%}" if not pd.isna(jan_row['sem_roi_percent']) else "N/A",
+                f"${affiliate_cpa:,.2f}",  # Constant across years
+                f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A",
+                f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A",
+                "Immediately" if jan_row['time_to_recover_SEM_cac'] == 0.0 else 
+                "Not Profitable" if isinstance(jan_row['time_to_recover_SEM_cac'], str) or jan_row['time_to_recover_SEM_cac'] > 1200 else 
+                f"{jan_row['time_to_recover_SEM_cac']:,.2f}",
+                "Immediately" if jan_row['time_to_recover_AM_cac'] == 0.0 else 
+                "Not Profitable" if isinstance(jan_row['time_to_recover_AM_cac'], str) or jan_row['time_to_recover_AM_cac'] > 1200 else 
+                f"{jan_row['time_to_recover_AM_cac']:,.2f}"
+            ]
+
+    metrics_df = pd.DataFrame(metrics_data)
+
+    # Reorder columns to put Metric first
+    cols = ['Metric'] + [col for col in metrics_df.columns if col != 'Metric']
+    metrics_df = metrics_df[cols]
+
+    # Display the table
+    st.dataframe(
+        metrics_df,
+        column_config={
+            "Metric": st.column_config.TextColumn("Metric", width="medium"),
+            **{str(year): st.column_config.TextColumn(str(year), width="small") for year in years}
+        },
+        hide_index=True,
+        use_container_width=True
+    )
 
