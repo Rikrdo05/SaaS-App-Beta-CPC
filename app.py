@@ -445,11 +445,9 @@ if st.session_state.calculate:
 
     df["Internet Marketing CAC Weighted average"] = ((df["SEM Subscriptions"] * df["sem_cpa"]) + (df["AM Subscriptions"] * affiliate_cpa)) / (df["SEM Subscriptions"] + df["AM Subscriptions"])
     
-    df["sem_roi"]=LTV-df["sem_cpa"] 
-    if df["sem_cpa"] == 0:
-        df["sem_roi_percent"] = None 
-    else: 
-        df["sem_roi_percent"] = df["sem_roi"] / df["sem_cpa"]
+    df["sem_roi"] = LTV - df["sem_cpa"]
+    df["sem_roi_percent"] = np.where(df["sem_cpa"] > 0, df["sem_roi"] / df["sem_cpa"], None)
+        
     # dataframe for cac payback period
     first_value = subscription_price * trial_to_paid
     ltv_threshold = LTV * 0.999  # 99% of LTV
