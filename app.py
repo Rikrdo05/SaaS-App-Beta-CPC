@@ -817,7 +817,7 @@ if st.session_state.calculate:
 
     
     if affiliate_cpa > 0 and LTV < affiliate_cpa:
-        st.warning("⚠️ **Warning:** Your Affiliate CAC ($" + f"{affiliate_cpa:,.2f}) "  
+        st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC ($" + f"{affiliate_cpa:,.2f}) "  
                   f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
         # Still allow calculations, but warn the user t
 
