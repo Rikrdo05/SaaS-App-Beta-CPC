@@ -741,48 +741,62 @@ if st.session_state.calculate:
     # Key Metrics Summary Table - Yearly View (January values)
     st.subheader("Key Metrics Summary - January Values by Year")
 
+    # First ensure Month column is datetime
+    df['Month'] = pd.to_datetime(df['Month'])
+
     # Get January data for each year
     january_data = df[df['Month'].dt.month == 1].copy()
 
-    # Prepare metrics data
-    metrics_data = {
-        "Metric": [
-            "Average Monthly Renewal Rate (%)",
-            "User Subscription Life Time Value - LTV ($)",
-            "SEM Paid Customer Acquisition Cost - CAC ($)",
-            "SEM Paid Customer Acquisition Cost ROI ($)",
-            "SEM Paid Customer Acquisition Cost ROI (%)",
-            "Affiliate Marketing Customer Acquisition Cost - CAC ($)",
-            "Affiliate Marketing Customer Acquisition Cost ROI ($)",
-            "Affiliate Marketing Customer Acquisition Cost ROI (%)",
-            "Time to Recover SEM CAC (months)",
-            "Time to Recover Affiliate CAC (months)"
-        ]
-    }
+    # Prepare metrics data - using a list of dicts approach for cleaner construction
+    metrics = [
+        {"Metric": "Average Monthly Renewal Rate (%)", "Type": "constant", "Value": f"{renewal_rate:.1%}"},
+        {"Metric": "User Subscription Life Time Value - LTV ($)", "Type": "constant", "Value": f"${LTV:,.2f}"},
+        {"Metric": "SEM Paid Customer Acquisition Cost - CAC ($)", "Type": "january", "Col": "sem_cpa"},
+        {"Metric": "SEM Paid Customer Acquisition Cost ROI ($)", "Type": "january", "Col": "sem_roi"},
+        {"Metric": "SEM Paid Customer Acquisition Cost ROI (%)", "Type": "january", "Col": "sem_roi_percent"},
+        {"Metric": "Affiliate Marketing Customer Acquisition Cost - CAC ($)", "Type": "constant", "Value": f"${affiliate_cpa:,.2f}"},
+        {"Metric": "Affiliate Marketing Customer Acquisition Cost ROI ($)", "Type": "constant", "Value": f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A"},
+        {"Metric": "Affiliate Marketing Customer Acquisition Cost ROI (%)", "Type": "constant", "Value": f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A"},
+        {"Metric": "Time to Recover SEM CAC (months)", "Type": "january", "Col": "time_to_recover_SEM_cac"},
+        {"Metric": "Time to Recover Affiliate CAC (months)", "Type": "january", "Col": "time_to_recover_AM_cac"}
+    ]
+
+    # Create the metrics dataframe
+    metrics_data = {"Metric": [m["Metric"] for m in metrics]}
 
     # Add yearly columns
     years = sorted(df['Year'].unique())
     for year in years:
         year_data = january_data[january_data['Year'] == year]
+    
         if not year_data.empty:
-            jan_row = year_data.iloc[0]  # Get January data
+            jan_row = year_data.iloc[0]
         
-            metrics_data[year] = [
-                f"{renewal_rate:.1%}",  # Constant across years
-                f"${LTV:,.2f}",  # Constant across years
-                f"${jan_row['sem_cpa']:,.2f}" if not pd.isna(jan_row['sem_cpa']) else "N/A",
-                f"${jan_row['sem_roi']:,.2f}" if not pd.isna(jan_row['sem_roi']) else "N/A",
-                f"{jan_row['sem_roi_percent']:.2%}" if not pd.isna(jan_row['sem_roi_percent']) else "N/A",
-                f"${affiliate_cpa:,.2f}",  # Constant across years
-                f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A",
-                f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A",
-                "Immediately" if jan_row['time_to_recover_SEM_cac'] == 0.0 else 
-                "Not Profitable" if isinstance(jan_row['time_to_recover_SEM_cac'], str) or jan_row['time_to_recover_SEM_cac'] > 1200 else 
-                f"{jan_row['time_to_recover_SEM_cac']:,.2f}",
-                "Immediately" if jan_row['time_to_recover_AM_cac'] == 0.0 else 
-                "Not Profitable" if isinstance(jan_row['time_to_recover_AM_cac'], str) or jan_row['time_to_recover_AM_cac'] > 1200 else 
-                f"{jan_row['time_to_recover_AM_cac']:,.2f}"
-            ]
+            year_values = []
+            for m in metrics:
+                if m["Type"] == "constant":
+                    year_values.append(m["Value"])
+                else:  # january type
+                    val = jan_row[m["Col"]]
+                
+                    if "time_to_recover" in m["Col"]:
+                        # Handle payback period formatting
+                        if val == 0.0:
+                            year_values.append("Immediately")
+                        elif isinstance(val, str) or val > 1200:
+                            year_values.append("Not Profitable")
+                        else:
+                            year_values.append(f"{val:,.2f}")
+                    else:
+                        # Handle numeric values
+                        if pd.isna(val):
+                            year_values.append("N/A")
+                        elif "percent" in m["Col"].lower() or "roi (%)" in m["Metric"].lower():
+                            year_values.append(f"{val:.2%}")
+                        else:
+                            year_values.append(f"${val:,.2f}" if isinstance(val, (int, float)) else str(val))
+        
+            metrics_data[year] = year_values
 
     metrics_df = pd.DataFrame(metrics_data)
 
@@ -790,7 +804,7 @@ if st.session_state.calculate:
     cols = ['Metric'] + [col for col in metrics_df.columns if col != 'Metric']
     metrics_df = metrics_df[cols]
 
-    # Display the table
+    # Display the table with improved formatting
     st.dataframe(
         metrics_df,
         column_config={
@@ -800,4 +814,3 @@ if st.session_state.calculate:
         hide_index=True,
         use_container_width=True
     )
-
