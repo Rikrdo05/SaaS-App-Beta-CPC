@@ -583,7 +583,7 @@ if st.session_state.calculate:
     st.plotly_chart(fig, use_container_width=True)    
 
     # Monthly Subscriptions
-    st.subheader("Monthly Subscriptions")
+    st.subheader("New Monthly Subscriptions & New Monthly Paying Users ")
     df_subscriptions = df[[
         'Month',
         'Total Monthly Subscriptions',
