@@ -800,11 +800,11 @@ if st.session_state.calculate:
 
     metrics_df = pd.DataFrame(metrics_data)
 
-# Convert to HTML and render
-def convert_df_to_html(df):
-    return df.to_html(escape=False, index=False)
+    # Convert to HTML and render
+    def convert_df_to_html(df):
+        return df.to_html(escape=False, index=False)
 
-st.markdown(
-    convert_df_to_html(metrics_df),
-    unsafe_allow_html=True
-)
+    st.markdown(
+        convert_df_to_html(metrics_df),
+        unsafe_allow_html=True
+    )
