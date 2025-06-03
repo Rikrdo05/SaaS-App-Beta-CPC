@@ -749,16 +749,16 @@ if st.session_state.calculate:
 
     # Prepare metrics data - using a list of dicts approach for cleaner construction
     metrics = [
-        {"Metric": "Average Monthly<br>Renewal Rate (%)", "Type": "constant", "Value": f"{renewal_rate:.1%}"},
-        {"Metric": "User Subscription<br>Life Time Value - LTV ($)", "Type": "constant", "Value": f"${LTV:,.2f}"},
-        {"Metric": "SEM Paid Customer<br>Acquisition Cost - CAC ($)", "Type": "january", "Col": "sem_cpa"},
-        {"Metric": "SEM Paid Customer<br>Acquisition Cost ROI ($)", "Type": "january", "Col": "sem_roi", "DependsOn": "sem_cpa"},
-        {"Metric": "SEM Paid Customer<br>Acquisition Cost ROI (%)", "Type": "january", "Col": "sem_roi_percent", "DependsOn": "sem_cpa"},
-        {"Metric": "Affiliate Marketing<br>Customer Acquisition Cost - CAC ($)", "Type": "constant", "Value": f"${affiliate_cpa:,.2f}"},
-        {"Metric": "Affiliate Marketing<br>Customer Acquisition Cost ROI ($)", "Type": "constant", "Value": f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A - CAC=0"},
-        {"Metric": "Affiliate Marketing<br>Customer Acquisition Cost ROI (%)", "Type": "constant", "Value": f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A - CAC=0"},
-        {"Metric": "Time to Recover<br>SEM CAC (months)", "Type": "january", "Col": "time_to_recover_SEM_cac", "DependsOn": "sem_cpa"},
-        {"Metric": "Time to Recover<br>Affiliate CAC (months)", "Type": "january", "Col": "time_to_recover_AM_cac", "DependsOn": "affiliate_cpa"}
+        {"Metric": "Average Monthly Renewal Rate (%)", "Type": "constant", "Value": f"{renewal_rate:.1%}"},
+        {"Metric": "User Subscription Life Time Value - LTV ($)", "Type": "constant", "Value": f"${LTV:,.2f}"},
+        {"Metric": "SEM Paid Customer Acquisition<br>Cost - CAC ($)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "SEM Paid Customer Acquisition<br>Cost - CAC ($)", "Type": "january", "Col": "sem_cpa"},
+        {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI ($)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI ($)", "Type": "january", "Col": "sem_roi"},
+        {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI (%)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI (%)", "Type": "january", "Col": "sem_roi_percent"},
+        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost - CAC ($)", "Type": "constant", "Value": f"${affiliate_cpa:,.2f}"},
+        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI ($)", "Type": "constant", "Value": f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A - CAC=0"},
+        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI (%)", "Type": "constant", "Value": f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A - CAC=0"},
+        {"Metric": "Time to Recover<br>SEM CAC (months)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "Time to Recover<br>SEM CAC (months)", "Type": "january", "Col": "time_to_recover_SEM_cac"},
+        {"Metric": "Time to Recover<br>Affiliate CAC (months)", "Type": "january", "Col": "time_to_recover_AM_cac"}
     ]
 
     # Create the metrics dataframe
