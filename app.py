@@ -784,7 +784,7 @@ if st.session_state.calculate:
                         if val == 0.0:
                             year_values.append("Immediately")
                         elif isinstance(val, str) or val > 1200:
-                            year_values.append("Not Profitable")
+                            year_values.append("Not Profitable. CAC>LTV")
                         else:
                             year_values.append(f"{val:,.2f}")
                     else:
@@ -821,22 +821,4 @@ if st.session_state.calculate:
                   f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
         # Still allow calculations, but warn the user
 
-    # 1. Locate SEM CAC for the first year
-    sem_cac_row = metrics_df[metrics_df['Metric'].str.contains('SEM Paid Customer Acquisition.*Cost - CAC')]
-    if not sem_cac_row.empty:
-        first_year = metrics_df.columns[1]  # First year column
-        sem_cac_value = sem_cac_row.iloc[0][first_year]
-    
-        # 2. Extract LTV (constant across years)
-        ltv_value = metrics_df[metrics_df['Metric'] == 'User Subscription Life Time Value - LTV ($)'].iloc[0, 0]  # Assumes LTV is in the first column's value
-    
-        # 3. Convert to floats (handle currency formatting)
-        try:
-            sem_cac = float(sem_cac_value.replace('$', '').replace(',', '')) if isinstance(sem_cac_value, str) else sem_cac_value
-            ltv = float(ltv_value.replace('$', '').replace(',', '')) if isinstance(ltv_value, str) else ltv_value
-        except (ValueError, AttributeError):
-            sem_cac, ltv = 0, 0  # Fallback if conversion fails
-    
-        # 4. Compare values
-        if sem_cac > ltv:
-            print(f"⚠️ Warning: SEM CAC (${sem_cac:,.2f}) > LTV (${ltv:,.2f}) in {first_year}")
+
