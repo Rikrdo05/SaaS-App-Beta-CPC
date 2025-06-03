@@ -755,8 +755,8 @@ if st.session_state.calculate:
         {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI ($)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI ($)", "Type": "january", "Col": "sem_roi"},
         {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI (%)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "SEM Paid Customer Acquisition<br>Cost ROI (%)", "Type": "january", "Col": "sem_roi_percent"},
         {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost - CAC ($)", "Type": "constant", "Value": f"${affiliate_cpa:,.2f}"},
-        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI ($)", "Type": "constant", "Value": f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A - CAC=0"},
-        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI (%)", "Type": "constant", "Value": f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A - CAC=0"},
+        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI ($)", "Type": "constant", "Value": f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A"},
+        {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI (%)", "Type": "constant", "Value": f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A"},
         {"Metric": "Time to Recover<br>SEM CAC (months)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "Time to Recover<br>SEM CAC (months)", "Type": "january", "Col": "time_to_recover_SEM_cac"},
         {"Metric": "Time to Recover Affiliate<br>Marketing CAC (months)", "Type": "constant", "Value": "N/A"} if affiliate_cpa == 0 else {"Metric": "Time to Recover<br>Affiliate CAC (months)", "Type": "january", "Col": "time_to_recover_AM_cac"}
     ]
@@ -809,10 +809,10 @@ if st.session_state.calculate:
         unsafe_allow_html=True
     )
     if sem_traffic_m1 > 0 and sem_cpc == 0:
-        st.warning("⚠️ **Warning:** You input SEM traffic but also input $0 SEM CPC, SEM traffic always has SEM Customer Acquisition Cost.")
+        st.warning("⚠️ **Warning:** You input SEM traffic, but also input $0 SEM CPC. SEM traffic always has SEM Customer Acquisition Cost CAC.")
     
     if am_traffic_m1 > 0 and affiliate_cpa == 0:
-        st.error("⚠️ **Warning:** You input Affiliate Marketing traffic but $0 Affiliate CAC, Affiliate Marketing traffic always has Affiliate CAC.")
+        st.error("⚠️ **Warning:** You input Affiliate Marketing traffic, but also $0 Affiliate Marketing CAC, Affiliate Marketing traffic always has Affiliate Marketing CAC.")
   
 
     
