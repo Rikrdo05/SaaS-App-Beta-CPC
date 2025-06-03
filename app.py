@@ -6,6 +6,7 @@ import calendar
 import plotly.graph_objects as go
 import plotly.express as px
 import textwrap
+import numpy as np
 
 # Initialize session state
 if "page" not in st.session_state:
