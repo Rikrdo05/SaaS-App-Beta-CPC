@@ -809,10 +809,10 @@ if st.session_state.calculate:
         unsafe_allow_html=True
     )
     if sem_traffic_m1 > 0 and sem_cpc == 0:
-        st.warning("⚠️ **Warning:** Verify your SEM CPC input: You input SEM traffic, but also input $0 SEM CPC, which makes the SEM Customer Acquisition Cost CAC not applicable. SEM traffic always has SEM Customer Acquisition Cost CAC.")
+        st.warning("⚠️ **Warning (Verify your SEM CPC input):** You input SEM traffic, but also input $0 SEM CPC, which makes the SEM Customer Acquisition Cost CAC not applicable. SEM traffic always has SEM Customer Acquisition Cost CAC.")
     
     if am_traffic_m1 > 0 and affiliate_cpa == 0:
-        st.error("⚠️ **Warning:** Verify your Affiliate Marketing CAC: You input Affiliate Marketing traffic, but also $0 Affiliate Marketing CAC, Affiliate Marketing traffic always has Affiliate Marketing CAC.")
+        st.error("⚠️ **Warning(Verify your Affiliate Marketing CAC):** You input Affiliate Marketing traffic, but also $0 Affiliate Marketing CAC, Affiliate Marketing traffic always has Affiliate Marketing CAC.")
   
 
     
