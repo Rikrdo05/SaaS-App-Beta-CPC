@@ -820,5 +820,35 @@ if st.session_state.calculate:
         st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC ($" + f"{affiliate_cpa:,.2f}) "  
                   f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
         # Still allow calculations, but warn the user t
+    row_index = metrics_df[metrics_df['Metric'] == "SEM Paid Customer Acquisition<br>Cost - CAC ($)"].index[0]
+    first_year = years[0]
+    second_year = years[1]
+    third_year = years[2]
+    fourth_year = years[3]
+    fifth_year = years[4]
+    
+    sem_cac_y1 = metrics_df.iloc[row_index, metrics_df.columns.get_loc(first_year)]
+    sem_cac_y2 = metrics_df.iloc[row_index, metrics_df.columns.get_loc(second_year)]
+    sem_cac_y3 = metrics_df.iloc[row_index, metrics_df.columns.get_loc(third_year)]
+    sem_cac_y4 = metrics_df.iloc[row_index, metrics_df.columns.get_loc(fourth_year)]
+    sem_cac_y5 = metrics_df.iloc[row_index, metrics_df.columns.get_loc(fifth_year)]
 
+    if sem_cac_y1 > 0 and LTV < affiliate_cpa:
+        st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC (sem_cac_y1) "  
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
 
+    if sem_cac_y2 > 0 and LTV < affiliate_cpa:
+        st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC (sem_cac_y2) "  
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
+
+    if sem_cac_y3 > 0 and LTV < affiliate_cpa:
+        st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC (sem_cac_y3) "  
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
+
+    if sem_cac_y4 > 0 and LTV < affiliate_cpa:
+        st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC ((sem_cac_y4) "  
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
+
+    if sem_cac_y5 > 0 and LTV < affiliate_cpa:
+        st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC (sem_cac_y5) "  
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll **lose money on every customer acquired through Affiliate Marketing channel**.")
