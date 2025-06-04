@@ -839,7 +839,7 @@ if st.session_state.calculate:
             sem_cac_y1_val = float(sem_cac_y1.replace('$', '').replace(',', '')) if '$' in sem_cac_y1 else 0
             if sem_cac_y1_val > 0 and LTV < sem_cac_y1_val:
                 st.warning(f"⚠️ **Warning (Year 1):** Your SEM CAC (${sem_cac_y1_val:,.2f}) "  
-                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher conversion rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
+                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher Conversion Rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
         except:
             pass
         
@@ -847,7 +847,7 @@ if st.session_state.calculate:
             sem_cac_y2_val = float(sem_cac_y2.replace('$', '').replace(',', '')) if '$' in sem_cac_y2 else 0
             if sem_cac_y2_val > 0 and LTV < sem_cac_y2_val:
                 st.warning(f"⚠️ **Warning (Year 2):** Your SEM CAC (${sem_cac_y2_val:,.2f}) "  
-                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher conversion rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
+                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher Conversion Rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
         except:
             pass
         
@@ -855,7 +855,7 @@ if st.session_state.calculate:
             sem_cac_y3_val = float(sem_cac_y3.replace('$', '').replace(',', '')) if '$' in sem_cac_y3 else 0
             if sem_cac_y3_val > 0 and LTV < sem_cac_y3_val:
                 st.warning(f"⚠️ **Warning (Year 3):** Your SEM CAC (${sem_cac_y3_val:,.2f}) "  
-                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher conversion rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
+                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher Conversion Rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
         except:
             pass
         
@@ -863,7 +863,7 @@ if st.session_state.calculate:
             sem_cac_y4_val = float(sem_cac_y4.replace('$', '').replace(',', '')) if '$' in sem_cac_y4 else 0
             if sem_cac_y4_val > 0 and LTV < sem_cac_y4_val:
                 st.warning(f"⚠️ **Warning (Year 4):** Your SEM CAC (${sem_cac_y4_val:,.2f}) "  
-                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher conversion rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
+                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher Conversion Rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
         except:
             pass
         
@@ -871,6 +871,6 @@ if st.session_state.calculate:
             sem_cac_y5_val = float(sem_cac_y5.replace('$', '').replace(',', '')) if '$' in sem_cac_y5 else 0
             if sem_cac_y5_val > 0 and LTV < sem_cac_y5_val:
                 st.warning(f"⚠️ **Warning (Year 5):** Your SEM CAC (${sem_cac_y5_val:,.2f}) "  
-                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher conversion rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
+                          f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on SEM-acquired customers. A lower SEM Cost per Click or a higher Conversion Rate (Trial-To-Paid) would help you achieve profitability with this segment of users")
         except:
             pass
