@@ -740,7 +740,7 @@ if st.session_state.calculate:
 
     # Key Metrics Summary Table - Yearly View (January values)
     st.subheader("Key Metrics Summary - January Values by Year")
-    st.write("Note: The figures below do not consider revenue generated from displaying ads")
+    st.write("Note: The figures in the table below do not consider revenue generated from displaying ads")
 
     # First ensure Month column is datetime
     df['Month'] = pd.to_datetime(df['Month'])
