@@ -8,7 +8,7 @@ import plotly.express as px
 import textwrap
 import numpy as np
 
-# Initialize session state
+# Initialize session state form
 if "page" not in st.session_state:
     st.session_state.page = "Assumptions"
 
