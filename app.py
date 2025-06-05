@@ -735,7 +735,7 @@ if st.session_state.calculate:
     st.plotly_chart(fig, use_container_width=True)
 
     # Key Metrics Summary Table - Yearly View (January values)
-    st.subheader("Key Metrics Summary - January Values by Year")
+    st.subheader("Key Metrics Summary")
     st.write("Note: The figures in the table below do not consider revenue generated from displaying ads")
 
     # First ensure Month column is datetime
