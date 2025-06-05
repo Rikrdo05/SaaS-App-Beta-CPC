@@ -755,7 +755,7 @@ if st.session_state.calculate:
         {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI ($)", "Type": "constant", "Value": f"${affiliate_marketing_roi:,.2f}" if affiliate_marketing_roi_percent is not None else "N/A"},
         {"Metric": "Affiliate Marketing Customer<br>Acquisition Cost ROI (%)", "Type": "constant", "Value": f"{affiliate_marketing_roi_percent:.2%}" if affiliate_marketing_roi_percent is not None else "N/A"},
         {"Metric": "Average Time to Recover<br>SEM CAC (months)", "Type": "constant", "Value": "N/A"} if sem_cpc == 0 else {"Metric": "Average Time to Recover<br>SEM CAC (months)", "Type": "january", "Col": "time_to_recover_SEM_cac"},
-        {"Metric": "Average Time to Recover Affiliate<br>Marketing CAC (months)", "Type": "constant", "Value": "N/A"} if affiliate_cpa == 0 else {"Metric": "Average Time to Recover<br>Affiliate CAC (months)", "Type": "january", "Col": "time_to_recover_AM_cac"}
+        {"Metric": "Average Time to Recover Affiliate<br>Marketing CAC (months)", "Type": "constant", "Value": "N/A"} if affiliate_cpa == 0 else {"Metric": "Average Time to Recover<br>Affiliate Marketing CAC (months)", "Type": "january", "Col": "time_to_recover_AM_cac"}
     ]
 
     # Create the metrics dataframe
