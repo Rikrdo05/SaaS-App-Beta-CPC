@@ -164,7 +164,7 @@ with st.form("single_page_form", clear_on_submit=False):
     cost_col1, cost_col2 = st.columns(2)
     
     with cost_col1:
-        st.session_state.form_data['sem_cpc'] = st.number_input("SEM Cost Per Click - CPC ($)", min_value=0.0, value=20.0, step=0.5, format="%.2f")
+        st.session_state.form_data['sem_cpc'] = st.number_input("SEM Cost Per Click - CPC ($)", min_value=0.0, value=1.0, step=0.5, format="%.2f")
         st.session_state.form_data['affiliate_cpa'] = st.number_input("Affiliate Marketing Customer Acquisition Cost - CAC ($)", min_value=0.0, value=11.0, step=0.5, format="%.2f")
         st.session_state.form_data['monthly_seo_marketing_cost'] = st.number_input("Monthly SEO Marketing Cost ($)", min_value=0, value=300, step=50)
         st.session_state.form_data['ccp_rate'] = st.number_input("Credit Card Processing Cost (% of Revenue)", min_value=0.0, value=10.0, step=0.5, format="%.2f") / 100
