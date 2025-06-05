@@ -166,6 +166,7 @@ with st.form("single_page_form", clear_on_submit=False):
     with cost_col1:
         st.session_state.form_data['sem_cpc'] = st.number_input("SEM Cost Per Click - CPC ($)", min_value=0.0, value=20.0, step=0.5, format="%.2f")
         st.session_state.form_data['affiliate_cpa'] = st.number_input("Affiliate Marketing Customer Acquisition Cost - CAC ($)", min_value=0.0, value=11.0, step=0.5, format="%.2f")
+        st.session_state.form_data['monthly_seo_marketing_cost'] = st.number_input("Monthly SEO Marketing Cost ($)", min_value=0, value=300, step=50)
         st.session_state.form_data['ccp_rate'] = st.number_input("Credit Card Processing Cost (% of Revenue)", min_value=0.0, value=10.0, step=0.5, format="%.2f") / 100
         st.session_state.form_data['refund_rate'] = st.number_input("Refund Rate (% of Revenue)", min_value=0.0, value=5.0, step=0.5, format="%.2f") / 100
         
@@ -260,6 +261,7 @@ if st.session_state.calculate:
     monthly_web_hosting_cost = form_data['monthly_web_hosting_cost']
     monthly_techsoft_cost = form_data['monthly_techsoft_cost']
     monthly_labor_cost = form_data['monthly_labor_cost']
+    monthly_seo_marketing_cost=form_data['monthly_seo_marketing_cost']
     views_per_visit=0.000000001 if form_data['views per visit'] == 0 else form_data['views per visit']
     cpm=0 if form_data['views per visit'] == 0 else form_data['cpm']
     
@@ -432,7 +434,8 @@ if st.session_state.calculate:
     df['SEM Marketing'] = df["SEM - Paid Traffic"] * sem_cpc
     df["am_cpa_month_cost"]=affiliate_cpa
     df['Affiliate Marketing'] = df["AM Subscriptions"] * affiliate_cpa
-    df['Internet Marketing Cost'] = df['Affiliate Marketing'] + df['SEM Marketing']
+    df['SEO Marketing Cost'] = monthly_seo_marketing_cost
+    df['Internet Marketing Cost'] = df['Affiliate Marketing'] + df['SEM Marketing']+df['SEO Marketing Cost']
     df['Technology & Software'] = monthly_techsoft_cost
     df['Earnings Before Taxes'] = df['Gross Income'] - df['Labor Cost'] - df['Internet Marketing Cost'] - df['Technology & Software']
     df['Cash Flow Accumulation'] = df['Earnings Before Taxes']  # Initialize with first month's value
