@@ -815,7 +815,7 @@ if st.session_state.calculate:
     
     if affiliate_cpa > 0 and LTV < affiliate_cpa:
         st.warning("⚠️ **Warning:** Your Affiliate Marketing CAC ($" + f"{affiliate_cpa:,.2f}) "  
-                  f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on every customer acquired through Affiliate Marketing channel. Things you can do to achieve profitability with this user segment: Reduce customer acquisition cost, increase subscription price, increase trial to paid rate or reduce monthly churn.")
+                  f"exceeds Customer LTV (${LTV:,.2f}). You'll lose money on customers acquired through Affiliate Marketing channel. Things you can do to achieve profitability with this user segment: Reduce customer acquisition cost, increase subscription price, increase trial to paid rate or reduce monthly churn.")
         # Still allow calculations, but warn the user t
     row_index = metrics_df[metrics_df['Metric'] == "SEM Paid Customer Acquisition<br>Cost - CAC ($)"].index[0]
     first_year = years[0]
