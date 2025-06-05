@@ -488,19 +488,12 @@ if st.session_state.calculate:
         else:
             return "No Pay Back"
     
-    def lookup_payback_period_intcac(cac_value):
-        if LTV < cac_value:
-            return "No Pay Back"
-        match_row = cumulative_ltv[cumulative_ltv["Accumulated Value"] >= cac_value].head(1)
-        if not match_row.empty:
-            return match_row["Months"].values[0]
-        else:
-            return "No Pay Back"
+
 
     df["time_to_recover_AM_cac"] = df["am_cpa_month_cost"].apply(lookup_payback_period_am)
     df["time_to_recover_SEM_cac"] = df["sem_cpa"].apply(lookup_payback_period_sem)
 
-    df["time_to_recover_Internet_marketing_cac"] = df["Internet Marketing CAC Weighted average"].apply(lookup_payback_period_intcac)
+
 
     # Financials dataframe consolidation
     df_financials = df[[
