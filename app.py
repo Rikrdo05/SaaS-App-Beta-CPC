@@ -42,8 +42,8 @@ with st.form("single_page_form", clear_on_submit=False):
     
     with col2:
         st.session_state.form_data['free_trial_days'] = st.number_input("Subscription Free Trial (Days)", min_value=0, max_value=28,value=7,step=1)
-        st.session_state.form_data['trial_to_paid'] = st.number_input("Monthly Trial To Paid Rate (%)", min_value=0, max_value=100,value=25,step=5) / 100
-        st.session_state.form_data['churn_rate'] = st.number_input("Monthly Churn Rate (%) - Paying users who unsubscribe", min_value=1, max_value=100,value=25,step=5) / 100      
+        st.session_state.form_data['trial_to_paid'] = st.number_input("Monthly Trial To Paid Rate (%)", min_value=0, max_value=100,value=25,step=1) / 100
+        st.session_state.form_data['churn_rate'] = st.number_input("Monthly Churn Rate (%) - Paying users who unsubscribe", min_value=1, max_value=100,value=25,step=1) / 100      
         
     
     # Traffic Inputs
