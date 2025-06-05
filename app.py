@@ -668,7 +668,7 @@ if st.session_state.calculate:
     ))
     fig.update_layout(
         xaxis_title="Month",
-        yaxis_title="MRR",
+        yaxis_title="MRR ($)",
         xaxis=dict(
             type='date',
             tickformat='%b-%Y',
@@ -726,7 +726,7 @@ if st.session_state.calculate:
     )
     fig.update_layout(
         xaxis_title="Year",
-        yaxis_title="Cash Flow Accumulation",
+        yaxis_title="Cash Flow Accumulation ($)",
         bargap=0.3,
         plot_bgcolor="white",
         yaxis_gridcolor="lightgray",
